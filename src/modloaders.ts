@@ -1,4 +1,4 @@
-import { fetchXML } from "./utils/fetch.ts";
+import { fetchXML } from "@/utils/fetch.ts";
 
 interface MavenVersions {
   metadata: {
@@ -90,7 +90,7 @@ async function fetchMavenVersionsWithFilterMap(
       parseVersion(xml.metadata.versioning.release),
     versions: xml.metadata.versioning.versions.version.map(parseVersion).filter(
       (v) => v,
-    ) as string[],
+    ).reverse() as string[],
   };
 }
 

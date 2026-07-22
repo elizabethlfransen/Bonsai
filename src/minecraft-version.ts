@@ -1,4 +1,4 @@
-import { fetchJSON } from "./utils/fetch.ts";
+import { fetchJSON } from "@/utils/fetch.ts";
 
 export interface MCVersions {
     latest: {
