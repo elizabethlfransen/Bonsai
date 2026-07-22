@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "default": {
+      "read": true,
+      "write": true,
+      "net": true,
+      "run": true,
+      "env": true
+    }
+  },
+  "tasks": {
+    "dev": "deno run -P=default src/main.ts",
+    "compile": "deno compile -P=default --output bonsai src/main.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "yargs": "npm:yargs"
+  }
+}
