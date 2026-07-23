@@ -1,6 +1,7 @@
 // @deno-types="npm:@types/yargs@^17"
 import yargs from "yargs";
 import init from "@/bin/init.ts";
+import add from "@/bin/add.ts";
 
 await yargs(Deno.args)
   // initial configuration
@@ -19,5 +20,6 @@ await yargs(Deno.args)
   .command('$0', 'test', y => y, (argv) => console.log(argv.packFile))
   // commands
   .command(init)
+  .command(add)
   // parse
   .parseAsync();

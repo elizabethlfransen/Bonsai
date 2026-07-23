@@ -10,7 +10,8 @@
         "maven.quiltmc.org",
         "files.minecraftforge.net",
         "maven.fabricmc.net",
-        "maven.minecraftforge.net"
+        "maven.minecraftforge.net",
+        "api.modrinth.com"
       ],
       "run": true,
       "env": true
@@ -22,6 +23,7 @@
   },
   "imports": {
     "@inquirer/prompts": "npm:@inquirer/prompts@^8.5.2",
+    "@modrinth/api-client": "npm:@modrinth/api-client@^0.34.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/path": "jsr:@std/path@^1.1.6",
     "fast-xml-parser": "npm:fast-xml-parser@^5.10.1",

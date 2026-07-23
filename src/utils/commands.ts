@@ -1,4 +1,4 @@
-import type { ArgumentsCamelCase, Argv, CommandModule } from "yargs";
+import type { CommandModule } from "yargs";
 import { GlobalOptionsArgs } from "@/bin/globalOptions.ts";
 
 

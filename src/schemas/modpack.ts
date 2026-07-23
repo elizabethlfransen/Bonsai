@@ -32,3 +32,9 @@ export async function writeModpack(
 ) {
   await Deno.writeTextFile(relativePath, stringifyModpackConfig(config));
 }
+
+export async function readModpack(
+  relativePath: string
+) {
+  return ModpackSchema.parse(TOML.parse(await Deno.readTextFile(relativePath)))
+}
