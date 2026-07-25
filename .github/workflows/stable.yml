@@ -1,0 +1,33 @@
+name: Nightly Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, aarch64-apple-darwin, x86_64-pc-windows-msvc]
+        include:
+          - target: x86_64-unknown-linux-gnu
+            suffix: -linux-x64
+          - target: aarch64-apple-darwin
+            suffix: -macos-arm64
+          - target: x86_64-pc-windows-msvc
+            suffix: -windows-x64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile
+        run: deno compile -P=default --target ${{ matrix.target }} --output ./bonsai${{ matrix.suffix }} --frozen src/main.ts
+      - name: Publish Stable Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./bonsai*
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
