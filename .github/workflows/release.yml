@@ -2,7 +2,7 @@ name: Official Stable Release
 
 on:
   release:
-    types: [published] # Triggers automatically when you hit "Publish Release" on GitHub
+    types: [published]
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,7 +12,6 @@ permissions:
   contents: write
 
 jobs:
-  # --- JOB 1: BUILD PRE-COMPILED BINARIES ---
   build-binaries:
     name: Build Binary for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -21,16 +20,16 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            binary_name: bonsai
             artifact_name: bonsai-linux-x86_64
-            asset_path: target/x86_64-unknown-linux-gnu/release/bonsai
           - os: macos-latest
             target: aarch64-apple-darwin
+            binary_name: bonsai
             artifact_name: bonsai-mac-arm64
-            asset_path: target/aarch64-apple-darwin/release/bonsai
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            binary_name: bonsai.exe
             artifact_name: bonsai-windows-x86_64.exe
-            asset_path: target/x86_64-pc-windows-msvc/release/bonsai.exe
 
     steps:
       - name: Checkout source code
@@ -44,19 +43,23 @@ jobs:
       - name: Build Release Binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      # Uploads the built binary directly to your newly created GitHub Release page
+      - name: Prepare Unique Binary Name
+        shell: bash
+        run: |
+          mv target/${{ matrix.target }}/release/${{ matrix.binary_name }} target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+
       - name: Upload Binary Asset to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.asset_path }}
+          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # --- JOB 2: PUBLISH SOURCE TO CRATES.IO ---
+
   publish-crates-io:
     name: Publish to crates.io
     runs-on: ubuntu-latest
-    needs: build-binaries # Ensures code compiles successfully before publishing registry source
+    needs: build-binaries
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -69,13 +72,8 @@ jobs:
 
       - name: Verify Version Alignment
         run: |
-          # Extract tag name from GitHub event (e.g., refs/tags/v1.0.0 or v1.0.0)
           RAW_TAG=${{ github.event.release.tag_name }}
-          
-          # Strip 'v' prefix if it exists (e.g., v1.0.0 becomes 1.0.0)
           CLEAN_VERSION=${RAW_TAG#v} 
-          
-          echo "Overwriting Cargo.toml version with release tag: $CLEAN_VERSION"
           cargo set-version "$CLEAN_VERSION"
 
       - name: Run Cargo Publish
