@@ -21,15 +21,15 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             binary_name: bonsai
-            artifact_name: bonsai-linux-x86_64
+            artifact_name: bonsai-linux-x86_64.tar.gz 
           - os: macos-latest
             target: aarch64-apple-darwin
             binary_name: bonsai
-            artifact_name: bonsai-mac-arm64
+            artifact_name: bonsai-mac-arm64.tar.gz 
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             binary_name: bonsai.exe
-            artifact_name: bonsai-windows-x86_64.exe
+            artifact_name: bonsai-windows-x86_64.zip
 
     steps:
       - name: Checkout source code
@@ -43,11 +43,16 @@ jobs:
       - name: Build Release Binary
         run: cargo build --release --target ${{ matrix.target }}
 
-
-      - name: Prepare Unique Binary Name
+      - name: Package binary
         shell: bash
         run: |
-          mv target/${{ matrix.target }}/release/${{ matrix.binary_name }} target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          cd target/${{ matrix.target }}/release/
+          if [[ "${{ matrix.artifact_name }}" == *.zip ]]; then
+            zip ../../../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
+          else
+            tar -czf ../../../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
+          fi
+
       - name: Upload Binary Asset to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -58,6 +63,6 @@ jobs:
             Commit: `${{ github.sha }}`
           prerelease: true
           make_latest: false
-          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          files: ${{ matrix.artifact_name }}   # Point straight to root archive path
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
