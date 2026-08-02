@@ -1,6 +1,9 @@
 [package]
-name = "bonsai"
-version = "0.1.0"
+name = "bonsai-mc"
+version = "0.1.0-dev"
 edition = "2024"
 
 [dependencies]
+[[bin]]
+name = "bonsai"
+path = "src/main.rs"
