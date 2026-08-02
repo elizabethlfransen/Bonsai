@@ -2,6 +2,8 @@
 name = "bonsai-mc"
 version = "0.1.0-init"
 edition = "2024"
+description = "A complete minecraft modpack building cli tool"
+license = "MIT"
 
 [dependencies]
 [[bin]]
