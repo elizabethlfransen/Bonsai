@@ -48,7 +48,7 @@ jobs:
         run: |
           cd target/${{ matrix.target }}/release/
           if [[ "${{ matrix.artifact_name }}" == *.zip ]]; then
-            zip ../../../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
+            powershell.exe -Command "Compress-Archive -Path '${{ matrix.binary_name }}' -DestinationPath '../../../${{ matrix.artifact_name }}' -Force"
           else
             tar -czf ../../../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
           fi
