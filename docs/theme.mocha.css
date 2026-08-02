@@ -1,0 +1,9 @@
+:root {
+    --base: #1e1e2e;
+    --mantle: #292c3c;
+    --green: #40a02b;
+    --color-bg: var(--base);
+    --theme-color: var(--green);
+    --cover-bg: linear-gradient( 56deg, oklch(90% 20% 196) 0%, oklch(90% 20% 101) 100% );
+    --sidebar-bg: var(--mantle);
+}

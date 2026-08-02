@@ -6,5 +6,5 @@
 - Easy to add mods via CLI or web
 - Easy to test your modpack with bootstrapper
 
-[Download](https://github.com/elizabethlfransen/Bonsai)
+<a id="downloadButton" href="#/README"><i id="downloadIcon" class="fa-xl fa-brands"></i> Download</a>
 [Get Started](user/install.md)

@@ -8,7 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/core-dark.min.css" />
+  <link href="https://prismjs.catppuccin.com/mocha.css" rel="stylesheet" />
+  <link href="./theme.mocha.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/6cfe16cf2a.js" crossorigin="anonymous"></script>
+  <style>
 
+
+  </style>
 </head>
 
 <body class="sidebar-chevron-right">
@@ -20,6 +26,7 @@
       coverpage: true,
       loadSidebar: true,
       subMaxLevel: 2,
+      homepage: 'user/install.md',
       noData: {
         '/': 'No results!',
       },
@@ -29,11 +36,77 @@
       },
       depth: 6,
     }
+    function waitForElement(selector) {
+      return new Promise((resolve) => {
+        // Check if the element is already in the DOM
+        const element = document.querySelector(selector);
+        if (element) {
+          return resolve(element);
+        }
+
+        // Observe the DOM for changes
+        const observer = new MutationObserver((mutations, obs) => {
+          const el = document.querySelector(selector);
+          if (el) {
+            obs.disconnect(); // Stop observing
+            resolve(el); // Return the element
+          }
+        });
+
+        // Watch the entire document for added nodes
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      });
+    }
+
+
+    function getOS() {
+      if (navigator.userAgentData && navigator.userAgentData.platform) {
+        const platform = navigator.userAgentData.platform.toLowerCase();
+
+        if (platform.includes('windows')) return 'Windows';
+        if (platform.includes('macos')) return 'Mac';
+        if (platform.includes('linux')) return 'Linux';
+      }
+      const userAgent = navigator.userAgent.toLowerCase();
+
+      if (userAgent.includes('win')) return 'Windows';
+      if (userAgent.includes('mac')) return 'Mac';
+      if (userAgent.includes('linux')) return 'Linux';
+
+      return 'Other';
+    }
+
+    Promise.all([
+      waitForElement("#downloadIcon"),
+      waitForElement("#downloadButton")
+    ]).then(([icon, button]) => {
+      switch (getOS()) {
+        case "Windows":
+          icon.classList.add("fa-windows");
+          button.href = "https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-windows-x86_64.zip";
+          break;
+        case "Mac":
+          icon.classList.add("fa-apple");
+          button.href = "https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-mac-arm64.tar.gz";
+          break;
+        case "Linux":
+          icon.classList.add("fa-linux");
+          button.href = "https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-linux-x86_64.tar.gz";
+          break;
+        default:
+          icon.remove();
+          break;
+      }
+    })
   </script>
   <!-- Docsify resource -->
   <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
 </body>
 
 </html>
