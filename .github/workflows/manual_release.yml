@@ -1,0 +1,81 @@
+name: Trigger Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Semantic version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  create-release:
+    name: Generate Version and Release Notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Essential: fetches all history so tags can be evaluated
+
+      - name: Calculate Next Version
+        id: semver
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // 1. Fetch all tags for the repository
+            const { data: tags } = await github.rest.repos.listTags({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            // Default to 0.1.0 if no prior tag exists
+            let latestTag = 'v0.1.0';
+            if (tags.length > 0) {
+              latestTag = tags[0].name;
+            }
+            
+            // Remove 'v' prefix to isolate the raw digits (e.g., 1.2.3)
+            const cleanVersion = latestTag.replace(/^v/, '');
+            let [major, minor, patch] = cleanVersion.split('.').map(Number);
+            
+            // 2. Increment based on manual drop-down choice
+            const bumpType = '${{ inputs.bump_type }}';
+            if (bumpType === 'major') {
+              major += 1;
+              minor = 0;
+              patch = 0;
+            } else if (bumpType === 'minor') {
+              minor += 1;
+              patch = 0;
+            } else {
+              patch += 1;
+            }
+
+            const nextVersion = `${major}.${minor}.${patch}`;
+            const nextTag = `v${nextVersion}`;
+
+            console.log(`Latest Tag: ${latestTag}`);
+            console.log(`Bumping ${bumpType} -> Next Tag: ${nextTag}`);
+
+            core.setOutput('version', nextVersion);
+            core.setOutput('tag', nextTag);
+
+      - name: Create GitHub Release and Auto-Generate Notes
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.semver.outputs.tag }}
+          name: Release ${{ steps.semver.outputs.tag }}
+          body: |
+            ## What's Changed
+            <!-- GitHub will automatically append standard release notes here -->
+          generate_release_notes: true # Instructs GitHub to parse commits into a clean changelog
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

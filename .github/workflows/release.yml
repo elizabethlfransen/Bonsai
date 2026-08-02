@@ -1,0 +1,79 @@
+name: Official Stable Release
+
+on:
+  release:
+    types: [published] # Triggers automatically when you hit "Publish Release" on GitHub
+
+env:
+  CARGO_TERM_COLOR: always
+  CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+jobs:
+  # --- JOB 1: BUILD PRE-COMPILED BINARIES ---
+  build-binaries:
+    name: Build Binary for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: bonsai-linux-x86_64
+            asset_path: target/x86_64-unknown-linux-gnu/release/bonsai
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: bonsai-mac-arm64
+            asset_path: target/aarch64-apple-darwin/release/bonsai
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: bonsai-windows-x86_64.exe
+            asset_path: target/x86_64-pc-windows-msvc/release/bonsai.exe
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build Release Binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # Uploads the built binary directly to your newly created GitHub Release page
+      - name: Upload Binary Asset to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # --- JOB 2: PUBLISH SOURCE TO CRATES.IO ---
+  publish-crates-io:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: build-binaries # Ensures code compiles successfully before publishing registry source
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        run: cargo install cargo-edit
+
+      - name: Verify Version Alignment
+        run: |
+          # Extract tag name from GitHub event (e.g., refs/tags/v1.0.0 or v1.0.0)
+          RAW_TAG=${{ github.event.release.tag_name }}
+          
+          # Strip 'v' prefix if it exists (e.g., v1.0.0 becomes 1.0.0)
+          CLEAN_VERSION=${RAW_TAG#v} 
+          
+          echo "Overwriting Cargo.toml version with release tag: $CLEAN_VERSION"
+          cargo set-version "$CLEAN_VERSION"
+
+      - name: Run Cargo Publish
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }}

@@ -1,0 +1,25 @@
+name: Nightly Binary Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Build Binary (Release Mode)
+        run: cargo build --release
+
+      - name: Tag and Upload Binary to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          prerelease: true
+          files: target/release/bonsai  # Paths to your compiled executable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
