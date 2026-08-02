@@ -8,6 +8,9 @@ env:
   CARGO_TERM_COLOR: always
   CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
+permissions:
+  contents: write
+
 jobs:
   # --- JOB 1: BUILD PRE-COMPILED BINARIES ---
   build-binaries:
