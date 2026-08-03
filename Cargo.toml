@@ -4,6 +4,7 @@ version = "0.1.0-dev"
 edition = "2024"
 description = "A complete minecraft modpack building cli tool"
 license = "MIT"
+repository = "https://github.com/elizabethlfransen/bonsai-cli"
 
 [dependencies]
 atomic_enum = "0.3.0"
@@ -17,6 +18,7 @@ serde_json = "1.0.151"
 strip-ansi-escapes = "0.2.1"
 thiserror = "2.0.19"
 tokio = { version = "1.53.1", features = ["full"] }
+
 [[bin]]
 name = "bonsai"
 path = "src/main.rs"

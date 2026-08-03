@@ -12,9 +12,9 @@
 
 | Platform | Architecture | Download                                                                                                     |
 | -------- | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| Windows  | x64          | [Download](https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-windows-x86_64.zip)  |
-| macOS    | arm64        | [Download](https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-mac-arm64.tar.gz)    |
-| Linux    | x64          | [Download](https://github.com/elizabethlfransen/Bonsai/releases/download/nightly/bonsai-linux-x86_64.tar.gz) |
+| Windows  | x64          | [Download](https://github.com/elizabethlfransen/bonsai-cli/releases/download/nightly/bonsai-windows-x86_64.zip)  |
+| macOS    | arm64        | [Download](https://github.com/elizabethlfransen/bonsai-cli/releases/download/nightly/bonsai-mac-arm64.tar.gz)    |
+| Linux    | x64          | [Download](https://github.com/elizabethlfransen/bonsai-cli/releases/download/nightly/bonsai-linux-x86_64.tar.gz) |
 
 ## For Developers
 
