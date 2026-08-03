@@ -1,8 +1,11 @@
+use crate::{
+    adapter::{
+        AutoConfirmPromptAdapter, CliClackPromptAdapter, NonInteractivePromptAdapter, PromptAdapter,
+    },
+    util::io::{RenderMode, set_color_override, set_is_quiet, setup_miettte},
+};
 use clap::{Args, Parser};
 use miette::Result;
-use owo_colors::OwoColorize;
-
-use crate::util::io::{RenderMode, set_is_quiet, set_render_mode};
 mod adapter;
 mod util;
 
@@ -23,12 +26,12 @@ struct GlobalOptions {
     #[arg(long, global = true, conflicts_with = "plain")]
     json: bool,
 
-    /// Formats output without color or special formatting, does not imply no-input.
+    /// Formats output without color or special formatting, implies no-input
     #[arg(long, global = true, conflicts_with = "json")]
     plain: bool,
 
-    /// Will not output non-essential output
-    #[arg(long, global = true)]
+    /// Will not output non-essential output and simplify errors
+    #[arg(long, global = true, visible_alias = "silent")]
     quiet: bool,
 
     /// answer yes to all confirms
@@ -50,20 +53,60 @@ struct BonsaiCli {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = BonsaiCli::parse();
-    if args.global_options.no_color {
-        owo_colors::set_override(false);
-    }
-    if args.global_options.force_color {
-        owo_colors::set_override(true);
-    }
-
+    set_color_override_from_args(&args.global_options);
     set_is_quiet(args.global_options.quiet);
-    if args.global_options.plain {
-        set_render_mode(RenderMode::Plain);
-    }
-    if args.global_options.json {
-        set_render_mode(RenderMode::Json);
-    }
-    cli_eprintln!("{}", "Test".red());
+    set_render_mode(&args.global_options);
+    setup_miettte()?;
+    let prompt_adapter = get_prompt_adapter(&args.global_options);
+    prompt_adapter.confirm("test").interact()?;
     Ok(())
+}
+
+fn set_color_override_from_args(global_options: &GlobalOptions) {
+    // priority: flag over env, force over no
+
+    if global_options.force_color {
+        set_color_override(true);
+    } else if global_options.no_color {
+        set_color_override(false);
+    } else if util::env::force_color() {
+        set_color_override(true);
+    } else if util::env::no_color() {
+        set_color_override(false);
+    }
+}
+
+fn set_render_mode(global_options: &GlobalOptions) {
+    if global_options.plain {
+        util::io::set_render_mode(RenderMode::Plain);
+    }
+    if global_options.json {
+        util::io::set_render_mode(RenderMode::Json);
+    }
+}
+
+fn wrap_with_auto_confirm<T: PromptAdapter + 'static>(
+    base_prompt_adapter: T,
+    global_options: &GlobalOptions,
+) -> Box<dyn PromptAdapter> {
+    if global_options.yes {
+        Box::new(AutoConfirmPromptAdapter::new(base_prompt_adapter, true))
+    } else if global_options.no {
+        Box::new(AutoConfirmPromptAdapter::new(base_prompt_adapter, false))
+    } else {
+        Box::new(base_prompt_adapter)
+    }
+}
+
+fn get_prompt_adapter(global_options: &GlobalOptions) -> Box<dyn PromptAdapter> {
+    if global_options.no_input
+        || util::env::no_input()
+        || global_options.json
+        || global_options.plain
+        || global_options.quiet
+    {
+        wrap_with_auto_confirm(NonInteractivePromptAdapter, global_options)
+    } else {
+        wrap_with_auto_confirm(CliClackPromptAdapter {}, global_options)
+    }
 }
