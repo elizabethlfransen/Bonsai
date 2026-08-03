@@ -1,65 +1,53 @@
+use std::io;
+
 use crate::{
     adapter::{
         AutoConfirmPromptAdapter, CliClackPromptAdapter, NonInteractivePromptAdapter, PromptAdapter,
     },
     util::io::{RenderMode, set_color_override, set_is_quiet, setup_miettte},
 };
-use clap::{Args, Parser};
-use miette::Result;
+use clap::{CommandFactory, Parser};
+use clap_complete::Shell;
+use clap_mangen::Man;
+use miette::{IntoDiagnostic, Result};
 mod adapter;
+mod cli;
 mod util;
-
-#[derive(Args, Debug)]
-struct GlobalOptions {
-    /// Disable color in the terminal
-    #[arg(long, global = true, conflicts_with = "force_color")]
-    no_color: bool,
-
-    /// Enables color in the terminal
-    #[arg(long, global = true, conflicts_with = "no_color")]
-    force_color: bool,
-
-    /// Disabled interactivity
-    #[arg(long, global = true)]
-    no_input: bool,
-    /// Formats output as json, implies no-input
-    #[arg(long, global = true, conflicts_with = "plain")]
-    json: bool,
-
-    /// Formats output without color or special formatting, implies no-input
-    #[arg(long, global = true, conflicts_with = "json")]
-    plain: bool,
-
-    /// Will not output non-essential output and simplify errors
-    #[arg(long, global = true, visible_alias = "silent")]
-    quiet: bool,
-
-    /// answer yes to all confirms
-    #[arg(long, short, global = true, conflicts_with = "no")]
-    yes: bool,
-
-    #[arg(long, short, global = true, conflicts_with = "yes")]
-    /// answer no to all confirms
-    no: bool,
-}
-
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct BonsaiCli {
-    #[command(flatten, next_help_heading = "Global Options")]
-    global_options: GlobalOptions,
-}
+use cli::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = BonsaiCli::parse();
-    set_color_override_from_args(&args.global_options);
-    set_is_quiet(args.global_options.quiet);
-    set_render_mode(&args.global_options);
+    let BonsaiCli {
+        global_options,
+        command,
+    } = BonsaiCli::parse();
+    set_color_override_from_args(&global_options);
+    set_is_quiet(global_options.quiet);
+    set_render_mode(&global_options);
     setup_miettte()?;
-    let prompt_adapter = get_prompt_adapter(&args.global_options);
-    prompt_adapter.confirm("test").interact()?;
-    cli_println!("test");
+    let prompt_adapter = get_prompt_adapter(&global_options);
+    match command {
+        Commands::Init => {
+            cli_println!("Init called");
+            Ok(())
+        }
+        Commands::GenerateCompletions(args) => generate_completions(args.shell),
+        Commands::GenerateMan(args) => generate_man_page(args.subcommand),
+    }
+}
+
+fn generate_completions(shell: Shell) -> Result<()> {
+    let mut cmd = BonsaiCli::command();
+    let bin_name = cmd.get_name().to_string();
+    clap_complete::generate(shell, &mut cmd, bin_name, &mut io::stdout());
+    Ok(())
+}
+
+fn generate_man_page(_sub_commands: Vec<String>) -> Result<()> {
+    let man = Man::new(BonsaiCli::command());
+    let mut buf = Vec::new();
+    man.render(&mut buf).into_diagnostic()?;
+    let raw_roff = String::from_utf8_lossy(&buf);
     Ok(())
 }
 
