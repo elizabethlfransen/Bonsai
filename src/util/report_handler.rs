@@ -5,15 +5,7 @@ use serde_json::{Value, json};
 const UNKNOWN_ERROR: &'static str = "bonsai::error::unknown";
 
 /// A minimal error reporter which only reports the error code
-pub struct MinimalReportHandler {
-    use_color: bool,
-}
-
-impl MinimalReportHandler {
-    pub fn new(use_color: bool) -> Self {
-        Self { use_color }
-    }
-}
+pub struct MinimalReportHandler;
 
 impl ReportHandler for MinimalReportHandler {
     fn debug(
@@ -36,7 +28,7 @@ pub struct MinimalJsonReportHandler;
 impl ReportHandler for MinimalJsonReportHandler {
     fn debug(
         &self,
-        error: &dyn miette::Diagnostic ,
+        error: &dyn miette::Diagnostic,
         f: &mut core::fmt::Formatter<'_>,
     ) -> core::fmt::Result {
         let code = error.code().unwrap_or(Box::new(UNKNOWN_ERROR)).to_string();
@@ -61,7 +53,7 @@ impl WrappedJsonReportHandler {
 impl ReportHandler for WrappedJsonReportHandler {
     fn debug(
         &self,
-        error: &dyn miette::Diagnostic ,
+        error: &dyn miette::Diagnostic,
         f: &mut core::fmt::Formatter<'_>,
     ) -> core::fmt::Result {
         let mut raw_json = String::new();

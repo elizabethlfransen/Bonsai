@@ -36,20 +36,13 @@ pub fn setup_miettte() -> miette::Result<()> {
         let render_mode = RENDER_MODE.load(Ordering::Relaxed);
         match (is_quiet(), render_mode) {
             (true, RenderMode::Json) => Box::new(MinimalJsonReportHandler),
-            (true, _) => Box::new(build_minimal_reporter()),
+            (true, _) => Box::new(MinimalReportHandler),
             (_, RenderMode::Normal) => Box::new(build_standard_reporter()),
             (_, RenderMode::Json) => Box::new(WrappedJsonReportHandler::new()),
             (_, RenderMode::Plain) => Box::new(NarratableReportHandler::new()),
         }
     }))?;
     Ok(())
-}
-
-fn build_minimal_reporter() -> MinimalReportHandler {
-    let force_color = FORCE_COLOR.load(Ordering::Relaxed);
-    let no_color = NO_COLOR.load(Ordering::Relaxed);
-    let supports_color = force_color || !no_color;
-    MinimalReportHandler::new(supports_color)
 }
 
 fn build_standard_reporter() -> MietteHandler {

@@ -59,6 +59,7 @@ async fn main() -> Result<()> {
     setup_miettte()?;
     let prompt_adapter = get_prompt_adapter(&args.global_options);
     prompt_adapter.confirm("test").interact()?;
+    cli_println!("test");
     Ok(())
 }
 

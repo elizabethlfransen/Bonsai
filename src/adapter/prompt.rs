@@ -43,8 +43,9 @@ mod non_interactive_adapter {
     }
 }
 mod auto_confirm_wrapper {
-    use super::{Confirm, PromptAdapter, PromptError, Result};
+    use super::{Confirm, PromptAdapter, Result};
     pub struct AutoConfirmPromptAdapter<T: PromptAdapter> {
+        #[allow(dead_code)]
         internal: T,
         auto_value: bool,
     }
