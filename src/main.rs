@@ -1,6 +1,10 @@
 use clap::{Args, Parser};
 use miette::Result;
+use owo_colors::OwoColorize;
+
+use crate::util::io::{RenderMode, set_is_quiet, set_render_mode};
 mod adapter;
+mod util;
 
 #[derive(Args, Debug)]
 struct GlobalOptions {
@@ -52,5 +56,14 @@ async fn main() -> Result<()> {
     if args.global_options.force_color {
         owo_colors::set_override(true);
     }
+
+    set_is_quiet(args.global_options.quiet);
+    if args.global_options.plain {
+        set_render_mode(RenderMode::Plain);
+    }
+    if args.global_options.json {
+        set_render_mode(RenderMode::Json);
+    }
+    cli_eprintln!("{}", "Test".red());
     Ok(())
 }

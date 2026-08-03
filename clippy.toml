@@ -1,0 +1,4 @@
+disallowed-macros = [
+    { path = "std::println", reason="Use `crate::util::io::cli_println` instead to respect quiet and color flags" },
+    { path = "std::eprintln", reason="Use `crate::util::io::cli_eprintln` instead to respect quiet and color flags" }
+]
