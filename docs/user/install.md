@@ -21,5 +21,5 @@
 You can also build Bonsai from source by installing via cargo
 
 ```shell
-cargo install bonsai-mc
+cargo install bonsai-mc-cli
 ```

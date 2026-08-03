@@ -1,5 +1,5 @@
 [package]
-name = "bonsai-mc"
+name = "bonsai-mc-cli"
 version = "0.1.0-dev"
 edition = "2024"
 description = "A complete minecraft modpack building cli tool"
