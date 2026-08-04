@@ -1,17 +1,14 @@
-use std::io;
-
 use crate::{
     adapter::{
         AutoConfirmPromptAdapter, CliClackPromptAdapter, NonInteractivePromptAdapter, PromptAdapter,
     },
     util::io::{RenderMode, set_color_override, set_is_quiet, setup_miettte},
 };
-use clap::{CommandFactory, Parser};
-use clap_complete::Shell;
-use clap_mangen::Man;
-use miette::{IntoDiagnostic, Result};
+use clap::Parser;
+use miette::Result;
 mod adapter;
 mod cli;
+mod commands;
 mod util;
 use cli::*;
 
@@ -31,24 +28,14 @@ async fn main() -> Result<()> {
             cli_println!("Init called");
             Ok(())
         }
-        Commands::GenerateCompletions(args) => generate_completions(args.shell),
-        Commands::GenerateMan(args) => generate_man_page(args.subcommand),
+        Commands::Completions(args) => commands::completions::handle_command(args),
+        Commands::GenerateMan(args) => commands::generate_man::handle_command(args),
+        Commands::Util { command } => match command {
+            UtilCommands::GenerateMarkdownHelp(args) => {
+                commands::util::generate_markdown_help::handle_command(args)
+            }
+        },
     }
-}
-
-fn generate_completions(shell: Shell) -> Result<()> {
-    let mut cmd = BonsaiCli::command();
-    let bin_name = cmd.get_name().to_string();
-    clap_complete::generate(shell, &mut cmd, bin_name, &mut io::stdout());
-    Ok(())
-}
-
-fn generate_man_page(_sub_commands: Vec<String>) -> Result<()> {
-    let man = Man::new(BonsaiCli::command());
-    let mut buf = Vec::new();
-    man.render(&mut buf).into_diagnostic()?;
-    let raw_roff = String::from_utf8_lossy(&buf);
-    Ok(())
 }
 
 fn set_color_override_from_args(global_options: &GlobalOptions) {

@@ -1,13 +1,39 @@
+use std::path::PathBuf;
+
 use clap::{Args, Parser, Subcommand};
 use clap_complete::Shell;
 
+/// Build minecraft modpacks for CurseForge and Modrinth from the command line.
 #[derive(Parser, Debug)]
-#[command(version, about)]
+#[command(version, about, name="bonsai")]
 pub struct BonsaiCli {
     #[command(subcommand)]
     pub command: Commands,
     #[command(flatten, next_help_heading = "Global Options")]
     pub global_options: GlobalOptions,
+}
+
+
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    Init,
+    /// Generate shell completions.
+    /// 
+    /// Typically you would add the follow line in your .bashrc or equivalent file:
+    /// 
+    /// eval "$(bonsai completions)"
+    Completions(GenerateCompletionsArgs),
+    /// Generate man pages. If the directory already exists this will fail. If you want to update your man pages use `--force`
+    GenerateMan(GenerateManArgs),
+    Util {
+        #[command(subcommand)]
+        command: UtilCommands
+    }
+}
+
+#[derive(Subcommand, Debug)]
+pub enum UtilCommands {
+    GenerateMarkdownHelp(GenerateMarkdownHelpArgs)
 }
 
 #[derive(Args, Debug)]
@@ -48,21 +74,24 @@ pub struct GlobalOptions {
 pub struct GenerateCompletionsArgs {
     /// The target shell
     #[arg(value_enum)]
-    pub shell: Shell,
+    pub shell: Option<Shell>,
 }
 
 #[derive(Args, Debug)]
 pub struct GenerateManArgs {
-    /// Subcommand to inspect
-    #[arg(num_args=0..)]
-    pub subcommand: Vec<String>,
+    
+    /// output directory to generate man args.
+    /// 
+    /// example: bonsai generate-man /usr/local/share/man1
+    #[arg(default_value="/usr/local/share/man/man1")]
+    pub out: PathBuf,
+    #[arg(short, long)]
+    pub force: bool,
 }
 
-#[derive(Subcommand, Debug)]
-pub enum Commands {
-    Init,
-    /// Generate shell completions
-    GenerateCompletions(GenerateCompletionsArgs),
-    /// Generate man pages
-    GenerateMan(GenerateManArgs),
+#[derive(Args, Debug)]
+pub struct GenerateMarkdownHelpArgs {
+    /// The directory to generate markdown files
+    #[arg()]
+    pub out_dir: PathBuf
 }

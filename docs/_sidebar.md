@@ -1,11 +1,12 @@
 - User Guide
-  - [Install](user/install.md)
-  - [Environment Variables](user/environment_variables.md)
-  - [Global Flags](user/global_flags.md)
+  - [Install](/user/install.md)
+  - [Environment Variables](/user/environment_variables.md)
+  - Commands
+    - [bonsai](/user/commands/bonsai.md)
 
 - Developers
-  - [Guidelines](dev/guidelines.md)
-  - [Architecture](dev/architecture.md)
+  - [Guidelines](/dev/guidelines.md)
+  - [Architecture](/dev/architecture.md)
 
 - Project
-  - [About](about.md)
+  - [About](/about.md)
