@@ -1,15 +1,7 @@
 - User Guide
   - [Install](/user/install.md)
   - [Environment Variables](/user/environment_variables.md)
-  - Commands
-    <!-- !COMMANDS START -->
-      - <a class="cmd" href="#/user/commands/bonsai">bonsai</a>
-        - <a class="cmd" href="#/user/commands/bonsai/completions">completions</a>
-        - <a class="cmd" href="#/user/commands/bonsai/generate-man">generate-man</a>
-          - <a class="cmd" href="#/user/commands/bonsai/util/generate-markdown-help">generate-markdown-help</a>
-        - <a class="cmd" href="#/user/commands/bonsai/init">init</a>
-        - <a class="cmd" href="#/user/commands/bonsai/util">util</a>
-    <!-- !COMMANDS END -->
+  - [Commands](/user/commands/bonsai.md)
 - Developers
   - [Guidelines](/dev/guidelines.md)
   - [Architecture](/dev/architecture.md)

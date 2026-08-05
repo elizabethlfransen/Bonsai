@@ -1,0 +1,6 @@
+- [**bonsai**](/user/commands/bonsai.md)
+  - [init](/user/commands/bonsai/init.md)
+  - [completions](/user/commands/bonsai/completions.md)
+  - [generate-man](/user/commands/bonsai/generate-man.md)
+  - [util](/user/commands/bonsai/util.md)
+    - [generate-markdown-help](/user/commands/bonsai/util/generate-markdown-help.md)

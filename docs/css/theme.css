@@ -230,16 +230,6 @@
     }
 }
 
-
-.sidebar a.cmd[href] {
-    font-family: "JetBrains Mono", monospace;
-    color: var(--rosewater);
-}
-
-.sidebar li.active>a.cmd[href] {
-    color: var(--green);
-}
-
 .sidebar {
     display: flex;
     height: 100vh;
@@ -286,4 +276,20 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+}
+
+/* Need to use a weird selector in order to detect that we're using the commands nested sidebar */
+.sidebar-nav:has(> ul > li > a[href="#/user/commands/bonsai"]) ul {
+    --_sidebar-list-inset: 0;
+    --sidebar-link-color: var(--subtext0);
+    --sidebar-link-spacing: 0.5em;
+}
+
+.sidebar-nav:has(> ul > li > a[href="#/user/commands/bonsai"]) > ul > li, .sidebar-nav:has(a[href="#/user/commands/bonsai"]) > ul > li > ul > li {
+    margin-top: 1em;
+    --sidebar-link-color: var(--text);
+}
+
+.sidebar-nav:has(> ul > li > a[href="#/user/commands/bonsai"]) ul > li > a {
+    background: none !important;
 }

@@ -10,8 +10,7 @@ fn main() -> Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/cli.rs");
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to read CARGO_MANIFEST_DIR");
-    let docs_dir = PathBuf::from(manifest_dir).join("docs");
-    let commands_dir = docs_dir.join("user/commands");
+    let commands_dir = PathBuf::from(manifest_dir).join("docs/user/commands");
     let mut generated_commands: Vec<(String, Vec<String>)> = Vec::new();
     if fs::exists(&commands_dir)? {
         fs::remove_dir_all(&commands_dir)?;
@@ -22,7 +21,7 @@ fn main() -> Result<()> {
         &commands_dir,
         &mut generated_commands,
     )?;
-    update_sidebar(&docs_dir.join("_sidebar.md"), &mut generated_commands)?;
+    update_sidebar(&commands_dir.join("_sidebar.md"))?;
     Ok(())
 }
 
@@ -132,38 +131,51 @@ fn write_aliases(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) 
     Ok(())
 }
 
-fn update_sidebar(sidebar_path: &Path, commands: &mut Vec<(String, Vec<String>)>) -> Result<()> {
-    const START_TAG: &'static str = "<!-- !COMMANDS START -->";
-    const END_TAG: &'static str = "<!-- !COMMANDS END -->";
-    let indent_size = 2;
-    let base_identation = 2;
-    // sort lexographically
-    commands.sort();
-    let list = commands
-        .iter()
-        .map(|(name, path)| {
-            format!(
-                "{}- <a class=\"cmd\" href=\"#/user/commands/{}\">{}</a>",
-                " ".repeat(indent_size * (base_identation + path.len())),
-                path.join("/"),
-                name,
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-    let mut sidebar_contents = fs::read_to_string(sidebar_path)?;
-    if let (Some(start_idx), Some(end_idx)) = (
-        sidebar_contents.find(START_TAG),
-        sidebar_contents.find(END_TAG),
-    ) {
-        let content_start = start_idx + START_TAG.len();
-        // trailing space is required for indentation
-        sidebar_contents.replace_range(content_start..end_idx, &format!("\n{list}\n    "));
-        fs::write(sidebar_path, sidebar_contents)?;
-        return Ok(());
+const INDENT_SIZE: usize = 2;
+const MAX_DEPTH: usize = 2;
+
+fn get_command_sidebar_list(
+    command: &Command,
+    parent_command_path: &Vec<&str>,
+    depth: usize,
+) -> String {
+    let name = command
+        .get_bin_name()
+        .or_else(|| command.get_display_name())
+        .unwrap_or_else(|| command.get_name());
+    let mut command_path = parent_command_path.clone();
+    command_path.push(name);
+    let doc_path = format!("/user/commands/{}.md", command_path.join("/"));
+    let display_path = match command_path.len() {
+        1 => &command_path,
+        2 => &command_path[1..],
+        _ => &command_path[2..],
+    };
+    let mut display_name = display_path.join(" ");
+    if command_path.len() == 1 {
+        display_name = format!("**{}**", display_name);
     }
-    Err(std::io::Error::new(
-        std::io::ErrorKind::InvalidData,
-        "Could not find start and stop tags for commands",
-    ))
+    let mut result = Vec::new();
+    result.push(format!(
+        "{}- [{}]({})",
+        " ".repeat(INDENT_SIZE * depth),
+        display_name,
+        doc_path
+    ));
+    for subcommand in command.get_subcommands() {
+        result.push(get_command_sidebar_list(
+            subcommand,
+            &command_path,
+            depth + 1,
+        ))
+    }
+    result.join("\n")
+}
+
+fn update_sidebar(sidebar_path: &Path) -> Result<()> {
+    // sort lexographically
+    let result = get_command_sidebar_list(&BonsaiCli::command(), &Vec::new(), 0);
+    let mut file = File::create(sidebar_path)?;
+    writeln!(file, "{result}")?;
+    Ok(())
 }
