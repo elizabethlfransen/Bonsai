@@ -9,9 +9,11 @@
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
   <link href="./css/theme.css" rel="stylesheet" />
   <link data-theme="system" media="(prefers-color-scheme: light)" href="./css/theme.latte.css" rel="stylesheet" />
-  <link data-theme="system" media="(prefers-color-scheme: light)" href="https://prismjs.catppuccin.com/latte.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: light)" href="https://prismjs.catppuccin.com/latte.css"
+    rel="stylesheet" />
   <link data-theme="system" media="(prefers-color-scheme: dark)" href="./css/theme.mocha.css" rel="stylesheet" />
-  <link data-theme="system" media="(prefers-color-scheme: dark)" href="https://prismjs.catppuccin.com/mocha.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: dark)" href="https://prismjs.catppuccin.com/mocha.css"
+    rel="stylesheet" />
   <link data-theme="latte" disabled href="./css/theme.latte.css" rel="stylesheet" />
   <link data-theme="latte" disabled href="https://prismjs.catppuccin.com/latte.css" rel="stylesheet" />
   <link data-theme="mocha" disabled href="./css/theme.mocha.css" rel="stylesheet" />
@@ -46,6 +48,16 @@
         '/': 'Search',
       },
       depth: 6,
+      plugins: [
+        function (hook, vm) {
+          // Invoked each time a page and its sidebar finish rendering
+          hook.doneEach(function () {
+            const sidebar = document.querySelector('.sidebar-nav');
+
+            registerThemeSelector(sidebar);
+          });
+        }
+      ]
     }
     function waitForElement(selector) {
       return new Promise((resolve) => {
@@ -112,23 +124,59 @@
 
       button.prepend(icon);
     });
-    waitForElement("#theme").then((themeSelect) => {
+
+    function registerThemeSelector(sidebar) {
+      const sidebar_footer = document.createElement('div');
+      sidebar_footer.className = "sidebar-bottom";
+      sidebar_footer.innerHTML = `
+        <i style="padding: 8px;" class="fa-solid fa-paintbrush" aria-label="theme" aria-label-for="theme"></i>
+        <select onchange="updateTheme(this.value)" style="flex-grow: 1;" id="theme">
+          <option value="system">System</option>
+          <option value="frappe">Frappe</option>
+          <option value="latte">Latte</option>
+          <option value="machiatto">Machiatto</option>
+          <option value="mocha">Mocha</option>
+        </select>
+      `;
+      const themeSelect = sidebar_footer.querySelector("#theme");
+
       const initialTheme = localStorage.getItem("theme") ?? 'system';
       updateTheme(initialTheme);
       themeSelect.value = initialTheme;
-    });
+      sidebar.appendChild(sidebar_footer);
+    }
+
+    function enableStyleSheet(sheet) {
+      return new Promise((resolve, reject) => {
+        let resolved = false;
+        sheet.addEventListener('load', () => {
+          if (!resolved) {
+            resolved = true;
+            requestAnimationFrame(() => resolve());
+          }
+        }, { once: true });
+        sheet.disabled = false;
+        if (!resolved) {
+          resolved = true;
+          requestAnimationFrame(() => resolve());
+        }
+      })
+    }
+
+    function enableTheme(theme) {
+      return Promise.allSettled([...document.querySelectorAll(`[data-theme="${theme}"]`)].map(enableStyleSheet));
+    }
+
     function updateTheme(value) {
       localStorage.setItem("theme", value);
-      document.querySelectorAll('[data-theme]').forEach((themeSheet) => {
-        if(themeSheet.dataset.theme == value) {
-          themeSheet.disabled = false;
-        } else {
-          themeSheet.disabled = true;
-        }
+      const selector = `[data-theme="${value}"]`;
+      enableTheme(value).then(() => {
+document.querySelectorAll(`[data-theme]:not(${selector})`).forEach((themeSheet) => themeSheet.disabled = true)
       });
+
     }
     // fix collapsible list items
-    
+
   </script>
   <!-- Docsify resource -->
   <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
