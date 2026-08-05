@@ -4,13 +4,14 @@ use crate::{
     },
     util::io::{RenderMode, set_color_override, set_is_quiet, setup_miettte},
 };
-use clap::Parser;
+use clap::{CommandFactory, Parser};
 use miette::Result;
 mod adapter;
 mod cli;
 mod commands;
 mod util;
 use cli::*;
+mod macros;
 
 #[tokio::main]
 async fn main() -> Result<()> {

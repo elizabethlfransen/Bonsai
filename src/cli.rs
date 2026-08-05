@@ -3,9 +3,19 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand};
 use clap_complete::Shell;
 
+use crate::examples;
+
 /// Build minecraft modpacks for CurseForge and Modrinth from the command line.
 #[derive(Parser, Debug)]
-#[command(version, about, name = "bonsai")]
+#[command(
+    version,
+    about,
+    name = "bonsai",
+    after_long_help = examples!(
+        "Initialize a project" => "bonsai init",
+        "Add a mod" => "bonsai mod add test"
+    )
+)]
 pub struct BonsaiCli {
     #[command(subcommand)]
     pub command: Commands,

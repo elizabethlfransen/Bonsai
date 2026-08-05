@@ -8,6 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
   <link href="./css/theme.css" rel="stylesheet" />
+  <!-- Color Schemes-->
   <link data-theme="system" media="(prefers-color-scheme: light)" href="./css/theme.latte.css" rel="stylesheet" />
   <link data-theme="system" media="(prefers-color-scheme: light)" href="https://prismjs.catppuccin.com/latte.css"
     rel="stylesheet" />
@@ -23,15 +24,8 @@
   <link data-theme="machiatto" disabled href="./css/theme.machiatto.css" rel="stylesheet" />
   <link data-theme="machiatto" disabled href="https://prismjs.catppuccin.com/machiatto.css" rel="stylesheet" />
 
-    <link href="./css/theme.latte.css" rel="preload" as="style" />
-  <link href="https://prismjs.catppuccin.com/latte.css" rel="preload" as="style" />
-  <link href="./css/theme.mocha.css" rel="preload" as="style" />
-  <link href="https://prismjs.catppuccin.com/mocha.css" rel="preload" as="style" />
-  <link href="./css/theme.frappe.css" rel="preload" as="style" />
-  <link href="https://prismjs.catppuccin.com/frappe.css" rel="preload" as="style" />
-  <link href="./css/theme.machiatto.css" rel="preload" as="style" />
-  <link href="https://prismjs.catppuccin.com/machiatto.css" rel="preload" as="style" />
-
+  <!-- Plugins -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/prismjs@1/plugins/command-line/prism-command-line.min.css">
   <script src="https://kit.fontawesome.com/6cfe16cf2a.js" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,14 +53,21 @@
       },
       depth: 6,
       plugins: [
-        function (hook, vm) {
-          // Invoked each time a page and its sidebar finish rendering
-          hook.doneEach(function () {
-            const sidebar = document.querySelector('.sidebar-nav');
+        (hook) => hook.doneEach(() => {
+          const sidebar = document.querySelector('.sidebar-nav');
 
-            registerThemeSelector(sidebar);
-          });
-        }
+          registerThemeSelector(sidebar);
+        }),
+        (hook) => hook.doneEach(() => {
+          // bashify our shells
+          document
+            .querySelectorAll(`pre[data-lang="bash"], pre[data-lang="shell"]`)
+            .forEach(codeBlock => {
+              codeBlock.classList.add("command-line")
+              codeBlock.dataset.prompt="$"
+            });
+          Prism.highlightAll();
+        })
       ]
     }
     function waitForElement(selector) {
@@ -181,7 +182,7 @@
       localStorage.setItem("theme", value);
       const selector = `[data-theme="${value}"]`;
       enableTheme(value).then(() => {
-document.querySelectorAll(`[data-theme]:not(${selector})`).forEach((themeSheet) => themeSheet.disabled = true)
+        document.querySelectorAll(`[data-theme]:not(${selector})`).forEach((themeSheet) => themeSheet.disabled = true)
       });
 
     }
@@ -193,7 +194,7 @@ document.querySelectorAll(`[data-theme]:not(${selector})`).forEach((themeSheet) 
   <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
-
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/plugins/command-line/prism-command-line.min.js"></script>
 </body>
 
 </html>

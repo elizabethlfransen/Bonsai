@@ -1,5 +1,7 @@
 #[path = "src/cli.rs"]
 mod cli;
+#[path = "src/macros.rs"]
+mod macros;
 use crate::cli::{BonsaiCli, GenerateMarkdownHelpArgs, GlobalOptions};
 use clap::{Arg, Args, Command, CommandFactory};
 use std::fs::{File, OpenOptions};
@@ -49,6 +51,7 @@ fn write_command_page(
     write_header_and_about(&cmd, &cmd_path, &mut output_file)?;
     write_available_commands(&cmd, &cmd_path, &mut output_file)?;
     write_aliases(&cmd, &parent_cmd_path, &mut output_file)?;
+    write_examples(&cmd, &mut output_file)?;
     for subcommand in cmd.get_subcommands() {
         write_command_page(subcommand, &cmd_path, output_dir, generated_commands)?;
     }
@@ -131,8 +134,56 @@ fn write_aliases(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) 
     Ok(())
 }
 
+fn write_example(example_block: &str, output_file: &mut impl Write) -> Result<()> {
+    let mut title: String = String::new();
+    let mut description: String = String::new();
+    let mut code: String = String::new();
+    let result = example_block
+        .lines()
+        .map(|line| line.trim())
+        .for_each(|line| {
+            if line.starts_with("#") {
+                let line = line[1..].trim();
+                if title.is_empty() {
+                    title = line.to_string();
+                } else {
+                    description.push_str(line);
+                    description.push('\n');
+                }
+            } else if line.starts_with("$ ") {
+                let line = &line[2..];
+                code.push_str(line);
+                code.push('\n');
+            }
+        });
+    writeln!(output_file, "#### {title}")?;
+    writeln!(output_file, "{description}")?;
+    writeln!(output_file, "```shell\n{code}```\n")?;
+    Ok(())
+}
+
+fn write_examples(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
+    let after_help = cmd
+        .get_after_long_help()
+        .or(cmd.get_after_help())
+        .map(|x| x.to_string())
+        .unwrap_or(String::new());
+    const EXAMPLE_HEADER: &'static str = "Examples:\n";
+    let mut start_index = match after_help.find(EXAMPLE_HEADER) {
+        Some(idx) => idx,
+        None => return Ok(()),
+    };
+    start_index += EXAMPLE_HEADER.len();
+
+    writeln!(output_file, "### Examples")?;
+    after_help[start_index..]
+        .split("\n\n")
+        .filter(|example| !example.trim().is_empty())
+        .map(|example_block| write_example(example_block, output_file))
+        .collect()
+}
+
 const INDENT_SIZE: usize = 2;
-const MAX_DEPTH: usize = 2;
 
 fn get_command_sidebar_list(
     command: &Command,
