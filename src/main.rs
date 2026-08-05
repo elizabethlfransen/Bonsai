@@ -4,7 +4,7 @@ use crate::{
     },
     util::io::{RenderMode, set_color_override, set_is_quiet, setup_miettte},
 };
-use clap::{CommandFactory, Parser};
+use clap::Parser;
 use miette::Result;
 mod adapter;
 mod cli;

@@ -35,16 +35,24 @@ pub fn handle_command(GenerateManArgs { force, out }: GenerateManArgs) -> Result
     Ok(())
 }
 
-fn generate_man_page_for_command_and_subcommands(path: &PathBuf, command: Command, prefix: Option<&str>) -> Result<()> {
+fn generate_man_page_for_command_and_subcommands(
+    path: &PathBuf,
+    command: Command,
+    prefix: Option<&str>,
+) -> Result<()> {
     // build the file_name
-    let prefix = prefix
-        .map(|x|format!("{x} "))
-        .unwrap_or(String::new());
+    let prefix = prefix.map(|x| format!("{x} ")).unwrap_or(String::new());
     let file_name_prefix = prefix.replace(' ', "-");
-    let filename_without_ext = file_name_prefix + command.get_display_name().unwrap_or_else(||command.get_name());
+    let filename_without_ext = file_name_prefix
+        + command
+            .get_display_name()
+            .unwrap_or_else(|| command.get_name());
     let filename = filename_without_ext.clone() + ".1";
     let file_path = path.join(filename);
-    let bin_name = command.get_bin_name().or_else(||command.get_display_name()).unwrap_or_else(||command.get_name());
+    let bin_name = command
+        .get_bin_name()
+        .or_else(|| command.get_display_name())
+        .unwrap_or_else(|| command.get_name());
     let command = command.clone().bin_name(prefix + bin_name);
 
     let mut file = OpenOptions::new()
@@ -53,10 +61,14 @@ fn generate_man_page_for_command_and_subcommands(path: &PathBuf, command: Comman
         .open(file_path)
         .map_err(|_| GenerateManError::NoAccess)?;
     let man = Man::new(command.clone());
-    man.render(&mut file).map_err(|_|GenerateManError::NoAccess)?;
+    man.render(&mut file)
+        .map_err(|_| GenerateManError::NoAccess)?;
     for subcommand in command.get_subcommands() {
-        generate_man_page_for_command_and_subcommands(path, subcommand.clone(), Some(&filename_without_ext))?;
+        generate_man_page_for_command_and_subcommands(
+            path,
+            subcommand.clone(),
+            Some(&filename_without_ext),
+        )?;
     }
     Ok(())
 }
-
