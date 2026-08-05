@@ -2,4 +2,4 @@
 
 
 ### Available Commands
-* [bonsai util generate-markdown-help](./generate-markdown-help.md)
+* [bonsai util generate-markdown-help](/user/commands/bonsai/util/generate-markdown-help.md)

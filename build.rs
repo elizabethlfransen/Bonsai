@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to read CARGO_MANIFEST_DIR");
     let docs_dir = PathBuf::from(manifest_dir).join("docs");
     let commands_dir = docs_dir.join("user/commands");
-    let mut generated_commands: Vec<(String, String)> = Vec::new();
+    let mut generated_commands: Vec<(String, Vec<String>)> = Vec::new();
     if fs::exists(&commands_dir)? {
         fs::remove_dir_all(&commands_dir)?;
     }
@@ -22,7 +22,7 @@ fn main() -> Result<()> {
         &commands_dir,
         &mut generated_commands,
     )?;
-    update_sidebar(&docs_dir.join("_sidebar.md"), &generated_commands)?;
+    update_sidebar(&docs_dir.join("_sidebar.md"), &mut generated_commands)?;
     Ok(())
 }
 
@@ -30,7 +30,7 @@ fn write_command_page(
     cmd: &Command,
     parent_cmd_path: &Vec<&str>,
     output_dir: &Path,
-    generated_commands: &mut Vec<(String, String)>,
+    generated_commands: &mut Vec<(String, Vec<String>)>,
 ) -> Result<()> {
     let name = cmd
         .get_bin_name()
@@ -39,7 +39,10 @@ fn write_command_page(
     let mut cmd_path = parent_cmd_path.clone();
     cmd_path.push(&name);
     let output_file_path = output_dir.join(format!("{}.md", cmd_path.join("/")));
-    generated_commands.push((cmd_path.join(" "), cmd_path.join("/")));
+    generated_commands.push((
+        name.to_string(),
+        cmd_path.iter().map(|x| x.to_string()).collect(),
+    ));
     if let Some(parent) = output_file_path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -101,7 +104,11 @@ fn write_subcommand_link(
     let mut full_name_path = path.clone();
     full_name_path.push(cmd_name);
     let full_name = full_name_path.join(" ");
-    writeln!(output_file, "* [{full_name}](./{cmd_name}.md)")?;
+    let full_path = full_name_path.join("/");
+    writeln!(
+        output_file,
+        "* [{full_name}](/user/commands/{full_path}.md)"
+    )?;
     Ok(())
 }
 
@@ -125,12 +132,23 @@ fn write_aliases(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) 
     Ok(())
 }
 
-fn update_sidebar(sidebar_path: &Path, commands: &Vec<(String, String)>) -> Result<()> {
+fn update_sidebar(sidebar_path: &Path, commands: &mut Vec<(String, Vec<String>)>) -> Result<()> {
     const START_TAG: &'static str = "<!-- !COMMANDS START -->";
     const END_TAG: &'static str = "<!-- !COMMANDS END -->";
+    let indent_size = 2;
+    let base_identation = 2;
+    // sort lexographically
+    commands.sort();
     let list = commands
         .iter()
-        .map(|(name, path)| format!("      - [{name}](/user/commands/{path}.md)"))
+        .map(|(name, path)| {
+            format!(
+                "{}- <a class=\"cmd\" href=\"#/user/commands/{}\">{}</a>",
+                " ".repeat(indent_size * (base_identation + path.len())),
+                path.join("/"),
+                name,
+            )
+        })
         .collect::<Vec<_>>()
         .join("\n");
     let mut sidebar_contents = fs::read_to_string(sidebar_path)?;

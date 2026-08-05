@@ -7,14 +7,24 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/core-dark.min.css" />
-  <link href="https://prismjs.catppuccin.com/mocha.css" rel="stylesheet" />
-  <link href="./theme.mocha.css" rel="stylesheet" />
+  <link href="./css/theme.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: light)" href="./css/theme.latte.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: light)" href="https://prismjs.catppuccin.com/latte.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: dark)" href="./css/theme.mocha.css" rel="stylesheet" />
+  <link data-theme="system" media="(prefers-color-scheme: dark)" href="https://prismjs.catppuccin.com/mocha.css" rel="stylesheet" />
+  <link data-theme="latte" disabled href="./css/theme.latte.css" rel="stylesheet" />
+  <link data-theme="latte" disabled href="https://prismjs.catppuccin.com/latte.css" rel="stylesheet" />
+  <link data-theme="mocha" disabled href="./css/theme.mocha.css" rel="stylesheet" />
+  <link data-theme="mocha" disabled href="https://prismjs.catppuccin.com/mocha.css" rel="stylesheet" />
+  <link data-theme="frappe" disabled href="./css/theme.frappe.css" rel="stylesheet" />
+  <link data-theme="frappe" disabled href="https://prismjs.catppuccin.com/frappe.css" rel="stylesheet" />
+  <link data-theme="machiatto" disabled href="./css/theme.machiatto.css" rel="stylesheet" />
+  <link data-theme="machiatto" disabled href="https://prismjs.catppuccin.com/machiatto.css" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/6cfe16cf2a.js" crossorigin="anonymous"></script>
-  <style>
-
-
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+    rel="stylesheet">
 </head>
 
 <body class="sidebar-chevron-right">
@@ -79,11 +89,9 @@
 
       return 'Other';
     }
-
-    Promise.all([
-      waitForElement("#downloadIcon"),
-      waitForElement("#downloadButton")
-    ]).then(([icon, button]) => {
+    waitForElement("#downloadButton").then((button) => {
+      const icon = document.createElement("i");
+      icon.classList.add('fa-brands', 'fa-xl');
       switch (getOS()) {
         case "Windows":
           icon.classList.add("fa-windows");
@@ -101,13 +109,33 @@
           icon.remove();
           break;
       }
-    })
+
+      button.prepend(icon);
+    });
+    waitForElement("#theme").then((themeSelect) => {
+      const initialTheme = localStorage.getItem("theme") ?? 'system';
+      updateTheme(initialTheme);
+      themeSelect.value = initialTheme;
+    });
+    function updateTheme(value) {
+      localStorage.setItem("theme", value);
+      document.querySelectorAll('[data-theme]').forEach((themeSheet) => {
+        if(themeSheet.dataset.theme == value) {
+          themeSheet.disabled = false;
+        } else {
+          themeSheet.disabled = true;
+        }
+      });
+    }
+    // fix collapsible list items
+    
   </script>
   <!-- Docsify resource -->
   <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-rust.min.js"></script>
+
 </body>
 
 </html>
