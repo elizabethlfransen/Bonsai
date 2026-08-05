@@ -1,6 +1,6 @@
 use std::{
     fs::{self, OpenOptions},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 
 use crate::cli::{BonsaiCli, GenerateManArgs};

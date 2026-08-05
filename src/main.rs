@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     set_is_quiet(global_options.quiet);
     set_render_mode(&global_options);
     setup_miettte()?;
-    let prompt_adapter = get_prompt_adapter(&global_options);
+    let _prompt_adapter = get_prompt_adapter(&global_options);
     match command {
         Commands::Init => {
             cli_println!("Init called");
@@ -30,11 +30,6 @@ async fn main() -> Result<()> {
         }
         Commands::Completions(args) => commands::completions::handle_command(args),
         Commands::GenerateMan(args) => commands::generate_man::handle_command(args),
-        Commands::Util { command } => match command {
-            UtilCommands::GenerateMarkdownHelp(args) => {
-                commands::util::generate_markdown_help::handle_command(args)
-            }
-        },
     }
 }
 
