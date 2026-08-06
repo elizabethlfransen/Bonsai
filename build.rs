@@ -40,7 +40,7 @@ fn write_command_page(
         .or_else(|| cmd.get_display_name())
         .unwrap_or_else(|| cmd.get_name());
     let mut cmd_path = parent_cmd_path.clone();
-    cmd_path.push(&name);
+    cmd_path.push(name);
     let output_file_path = output_dir.join(format!("{}.md", cmd_path.join("/")));
     generated_commands.push((
         name.to_string(),
@@ -50,11 +50,11 @@ fn write_command_page(
         fs::create_dir_all(parent)?;
     }
     let mut output_file = File::create(output_file_path)?;
-    write_header_and_about(&cmd, &cmd_path, &mut output_file)?;
-    write_available_commands(&cmd, &cmd_path, &mut output_file)?;
-    write_aliases(&cmd, &parent_cmd_path, &mut output_file)?;
-    write_options(&cmd, &mut output_file)?;
-    write_examples(&cmd, &mut output_file)?;
+    write_header_and_about(cmd, &cmd_path, &mut output_file)?;
+    write_available_commands(cmd, &cmd_path, &mut output_file)?;
+    write_aliases(cmd, parent_cmd_path, &mut output_file)?;
+    write_options(cmd, &mut output_file)?;
+    write_examples(cmd, &mut output_file)?;
     for subcommand in cmd.get_subcommands() {
         write_command_page(subcommand, &cmd_path, output_dir, generated_commands)?;
     }
@@ -70,7 +70,7 @@ fn write_header_and_about(
         .get_long_about()
         .or_else(|| cmd.get_about())
         .map(|x| x.to_string())
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     writeln!(
         output_file,
         "## {}  <!-- {{docsify-ignore}} -->",
@@ -106,7 +106,7 @@ fn write_available_commands(
     }
     writeln!(output_file, "### Available Commands")?;
     for subcommand in cmd.get_subcommands() {
-        write_subcommand_link(&subcommand, &path, output_file)?;
+        write_subcommand_link(subcommand, path, output_file)?;
     }
     Ok(())
 }
@@ -168,8 +168,7 @@ fn write_example(example_block: &str, output_file: &mut impl Write) -> Result<()
                     description.push_str(line);
                     description.push('\n');
                 }
-            } else if line.starts_with("$ ") {
-                let line = &line[2..];
+            } else if let Some(line) = line.strip_prefix("$ ") {
                 code.push_str(line);
                 code.push('\n');
             }
@@ -185,8 +184,8 @@ fn write_examples(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
         .get_after_long_help()
         .or(cmd.get_after_help())
         .map(|x| x.to_string())
-        .unwrap_or(String::new());
-    const EXAMPLE_HEADER: &'static str = "Examples:\n";
+        .unwrap_or_default();
+    const EXAMPLE_HEADER: &str = "Examples:\n";
     let mut start_index = match after_help.find(EXAMPLE_HEADER) {
         Some(idx) => idx,
         None => return Ok(()),
@@ -196,9 +195,7 @@ fn write_examples(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
     writeln!(output_file, "### Examples")?;
     after_help[start_index..]
         .split("\n\n")
-        .filter(|example| !example.trim().is_empty())
-        .map(|example_block| write_example(example_block, output_file))
-        .collect()
+        .filter(|example| !example.trim().is_empty()).try_for_each(|example_block| write_example(example_block, output_file))
 }
 
 const INDENT_SIZE: usize = 2;

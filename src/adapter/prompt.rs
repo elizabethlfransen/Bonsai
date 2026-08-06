@@ -53,15 +53,15 @@ mod auto_confirm_wrapper {
 
     impl Confirm for AutoConfirm {
         fn interact(&mut self) -> Result<bool> {
-            return Ok(self.0);
+            Ok(self.0)
         }
     }
     impl<T: PromptAdapter> AutoConfirmPromptAdapter<T> {
         pub fn new(prompt_adapter: T, auto_value: bool) -> Self {
-            return Self {
+            Self {
                 internal: prompt_adapter,
                 auto_value,
-            };
+            }
         }
     }
     impl<T: PromptAdapter> PromptAdapter for AutoConfirmPromptAdapter<T> {

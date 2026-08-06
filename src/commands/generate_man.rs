@@ -41,7 +41,7 @@ fn generate_man_page_for_command_and_subcommands(
     prefix: Option<&str>,
 ) -> Result<()> {
     // build the file_name
-    let prefix = prefix.map(|x| format!("{x} ")).unwrap_or(String::new());
+    let prefix = prefix.map(|x| format!("{x} ")).unwrap_or_default();
     let file_name_prefix = prefix.replace(' ', "-");
     let filename_without_ext = file_name_prefix
         + command

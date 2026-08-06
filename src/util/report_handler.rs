@@ -2,7 +2,7 @@ use miette::{JSONReportHandler, ReportHandler};
 use owo_colors::{OwoColorize, Stream};
 use serde_json::{Value, json};
 
-const UNKNOWN_ERROR: &'static str = "bonsai::error::unknown";
+const UNKNOWN_ERROR: &str = "bonsai::error::unknown";
 
 /// A minimal error reporter which only reports the error code
 pub struct MinimalReportHandler;
@@ -46,7 +46,7 @@ pub struct WrappedJsonReportHandler(JSONReportHandler);
 
 impl WrappedJsonReportHandler {
     pub fn new() -> Self {
-        return WrappedJsonReportHandler(JSONReportHandler);
+        WrappedJsonReportHandler(JSONReportHandler)
     }
 }
 

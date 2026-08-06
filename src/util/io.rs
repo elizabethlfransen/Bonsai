@@ -55,7 +55,7 @@ fn build_standard_reporter() -> MietteHandler {
     if force_color {
         opts = opts.color(true);
     }
-    return opts.build();
+    opts.build()
 }
 
 #[inline]
@@ -69,7 +69,7 @@ pub fn set_render_mode(render_mode: RenderMode) {
 
 #[inline]
 pub fn get_render_mode() -> RenderMode {
-    return RENDER_MODE.load(Ordering::Relaxed);
+    RENDER_MODE.load(Ordering::Relaxed)
 }
 
 #[allow(clippy::disallowed_macros)]

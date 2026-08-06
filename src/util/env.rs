@@ -1,4 +1,4 @@
-const BONSAI_FLAG_PREFIX: &'static str = "BONSAI";
+const BONSAI_FLAG_PREFIX: &str = "BONSAI";
 
 #[inline]
 fn is_bonsai_flag_set(flag_name: &str) -> bool {
