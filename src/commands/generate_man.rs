@@ -58,6 +58,7 @@ fn generate_man_page_for_command_and_subcommands(
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(file_path)
         .map_err(|_| GenerateManError::NoAccess)?;
     let man = Man::new(command.clone());

@@ -72,22 +72,25 @@ pub fn get_render_mode() -> RenderMode {
     RENDER_MODE.load(Ordering::Relaxed)
 }
 
-#[allow(clippy::disallowed_macros)]
 mod println_macros {
+
     #[macro_export]
     macro_rules! cli_println {
-        ($($arg:tt)*) => {{
-            if $crate::util::io::get_render_mode() != $crate::util::io::RenderMode::Json && !$crate::util::io::is_quiet() {
-                let colored_message = std::format!($($arg)*);
-                let stripped_message = strip_ansi_escapes::strip_str(colored_message.clone());
-                let message = owo_colors::OwoColorize::if_supports_color(
-                    &stripped_message,
-                    owo_colors::Stream::Stdout,
-                    |_| colored_message.clone(),
-                );
-                std::println!("{}", message);
+        ($($arg:tt)*) => {
+            #[allow(clippy::disallowed_macros)]
+            {
+                if $crate::util::io::get_render_mode() != $crate::util::io::RenderMode::Json && !$crate::util::io::is_quiet() {
+                    let colored_message = std::format!($($arg)*);
+                    let stripped_message = strip_ansi_escapes::strip_str(colored_message.clone());
+                    let message = owo_colors::OwoColorize::if_supports_color(
+                        &stripped_message,
+                        owo_colors::Stream::Stdout,
+                        |_| colored_message.clone(),
+                    );
+                    std::println!("{}", message);
+                }
             }
-        }};
+        };
     }
     #[macro_export]
     macro_rules! cli_eprintln {

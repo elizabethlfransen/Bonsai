@@ -111,17 +111,13 @@ fn write_available_commands(
     Ok(())
 }
 
-fn write_subcommand_link(
-    cmd: &Command,
-    path: &Vec<&str>,
-    output_file: &mut impl Write,
-) -> Result<()> {
+fn write_subcommand_link(cmd: &Command, path: &[&str], output_file: &mut impl Write) -> Result<()> {
     let cmd_name = cmd
         .get_bin_name()
         .or_else(|| cmd.get_display_name())
         .unwrap_or_else(|| cmd.get_name());
 
-    let mut full_name_path = path.clone();
+    let mut full_name_path = path.to_vec();
     full_name_path.push(cmd_name);
     let full_name = full_name_path.join(" ");
     let full_path = full_name_path.join("/");
@@ -132,7 +128,7 @@ fn write_subcommand_link(
     Ok(())
 }
 
-fn write_aliases(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) -> Result<()> {
+fn write_aliases(cmd: &Command, path: &[&str], output_file: &mut impl Write) -> Result<()> {
     let aliases: Vec<&str> = cmd.get_visible_aliases().collect();
     if aliases.is_empty() {
         return Ok(());
@@ -141,7 +137,7 @@ fn write_aliases(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) 
     let formatted_aliases = aliases
         .into_iter()
         .map(|item| {
-            let mut alias_path = path.clone();
+            let mut alias_path = path.to_vec();
             alias_path.push(item);
             let fully_qualified_alias = alias_path.join(" ");
             format!("`{fully_qualified_alias}`")
@@ -160,7 +156,7 @@ fn write_example(example_block: &str, output_file: &mut impl Write) -> Result<()
         .lines()
         .map(|line| line.trim())
         .for_each(|line| {
-            if line.starts_with("#") {
+            if let Some(line) = &line.strip_prefix("#") {
                 let line = line[1..].trim();
                 if title.is_empty() {
                     title = line.to_string();
@@ -195,21 +191,22 @@ fn write_examples(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
     writeln!(output_file, "### Examples")?;
     after_help[start_index..]
         .split("\n\n")
-        .filter(|example| !example.trim().is_empty()).try_for_each(|example_block| write_example(example_block, output_file))
+        .filter(|example| !example.trim().is_empty())
+        .try_for_each(|example_block| write_example(example_block, output_file))
 }
 
 const INDENT_SIZE: usize = 2;
 
 fn get_command_sidebar_list(
     command: &Command,
-    parent_command_path: &Vec<&str>,
+    parent_command_path: &[&str],
     depth: usize,
 ) -> String {
     let name = command
         .get_bin_name()
         .or_else(|| command.get_display_name())
         .unwrap_or_else(|| command.get_name());
-    let mut command_path = parent_command_path.clone();
+    let mut command_path = parent_command_path.to_vec();
     command_path.push(name);
     let doc_path = format!("/user/commands/{}.md", command_path.join("/"));
     let display_path = match command_path.len() {
