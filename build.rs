@@ -51,6 +51,7 @@ fn write_command_page(
     write_header_and_about(&cmd, &cmd_path, &mut output_file)?;
     write_available_commands(&cmd, &cmd_path, &mut output_file)?;
     write_aliases(&cmd, &parent_cmd_path, &mut output_file)?;
+    write_options(&cmd, &mut output_file)?;
     write_examples(&cmd, &mut output_file)?;
     for subcommand in cmd.get_subcommands() {
         write_command_page(subcommand, &cmd_path, output_dir, generated_commands)?;
@@ -73,8 +74,23 @@ fn write_header_and_about(
         "## {}  <!-- {{docsify-ignore}} -->",
         path.join(" ")
     )?;
+    write_usage(cmd, path, output_file)?;
+    writeln!(output_file, "### Description")?;
     writeln!(output_file, "{}", about)?;
     writeln!(output_file)?;
+    Ok(())
+}
+
+fn write_usage(cmd: &Command, path: &Vec<&str>, output_file: &mut impl Write) -> Result<()> {
+    let name = cmd
+        .get_bin_name()
+        .or_else(|| cmd.get_display_name())
+        .unwrap_or_else(|| cmd.get_name());
+    writeln!(output_file, "### Usage")?;
+    let prefix = format!("Usage: {}", name);
+    let rendered_usage = cmd.clone().render_usage().to_string();
+    let usage = format!("{}{}", path.join(" "), &rendered_usage[prefix.len()..]);
+    writeln!(output_file, "```shell\n{usage}\n```",)?;
     Ok(())
 }
 
@@ -228,5 +244,82 @@ fn update_sidebar(sidebar_path: &Path) -> Result<()> {
     let result = get_command_sidebar_list(&BonsaiCli::command(), &Vec::new(), 0);
     let mut file = File::create(sidebar_path)?;
     writeln!(file, "{result}")?;
+    Ok(())
+}
+
+fn write_position_arguments(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
+    let positional_args = cmd
+        .get_arguments()
+        .filter(|x| x.is_positional())
+        .collect::<Vec<_>>();
+    if positional_args.is_empty() {
+        return Ok(());
+    }
+    writeln!(output_file, "### Positional Arguments")?;
+    for arg in positional_args {
+        let names = if let Some(value_names) = arg.get_value_names() {
+            value_names
+                .iter()
+                .map(|name| format!("`{name}`"))
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        writeln!(output_file, "- {}", names.join(", "))?;
+        writeln!(
+            output_file,
+            "{}",
+            arg.get_long_help()
+                .or(arg.get_help())
+                .map(|help| help.to_string())
+                .map(|help| format!("  - {}", help))
+                .unwrap_or(String::new())
+        )?;
+    }
+    Ok(())
+}
+
+fn write_flags(cmd: &Command, global: bool, output_file: &mut impl Write) -> Result<()> {
+    let flags = cmd
+        .get_arguments()
+        .filter(|arg| !arg.is_positional() && arg.is_global_set() == global)
+        .collect::<Vec<_>>();
+    if flags.is_empty() {
+        return Ok(());
+    }
+    let initial_header =
+        flags[0]
+            .get_help_heading()
+            .unwrap_or(if global { "Global Options" } else { "Options" });
+    writeln!(output_file, "### {}", initial_header)?;
+    for flag in flags {
+        let names = [
+            flag.get_short().map(|name| format!("`-{name}`")),
+            flag.get_long().map(|name| format!("`--{name}`")),
+        ]
+        .iter()
+        .filter_map(|item| item.clone())
+        .collect::<Vec<_>>()
+        .join(", ");
+        writeln!(output_file, "- {names}")?;
+        writeln!(
+            output_file,
+            "{}",
+            flag.get_long_help()
+                .or(flag.get_help())
+                .map(|help| help.to_string())
+                .map(|help| format!("  - {}", help))
+                .unwrap_or(String::new())
+        )?;
+    }
+    Ok(())
+}
+
+fn write_options(cmd: &Command, output_file: &mut impl Write) -> Result<()> {
+    writeln!(output_file, "<div id=\"commandOptions\">\n")?;
+    write_position_arguments(cmd, output_file)?;
+    write_flags(cmd, false, output_file)?;
+    write_flags(&BonsaiCli::command(), true, output_file)?;
+    writeln!(output_file, "\n</div>")?;
     Ok(())
 }

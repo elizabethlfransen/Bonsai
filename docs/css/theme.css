@@ -293,3 +293,11 @@
 .sidebar-nav:has(> ul > li > a[href="#/user/commands/bonsai"]) ul > li > a {
     background: none !important;
 }
+
+#commandOptions li {
+    list-style: none;
+}
+
+#commandOptions > ul > li {
+    margin: 1em;
+}

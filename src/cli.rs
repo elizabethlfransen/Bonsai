@@ -85,8 +85,6 @@ pub struct GenerateCompletionsArgs {
 #[derive(Args, Debug)]
 pub struct GenerateManArgs {
     /// output directory to generate man args.
-    ///
-    /// example: bonsai generate-man /usr/local/share/man1
     #[arg(default_value = "/usr/local/share/man/man1")]
     pub out: PathBuf,
     #[arg(short, long)]
