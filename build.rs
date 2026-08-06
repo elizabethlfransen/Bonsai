@@ -1,3 +1,5 @@
+#![allow(clippy::disallowed_macros)]
+
 #[path = "src/cli.rs"]
 mod cli;
 #[path = "src/macros.rs"]
