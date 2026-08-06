@@ -2,9 +2,9 @@
 mod cli;
 #[path = "src/macros.rs"]
 mod macros;
-use crate::cli::{BonsaiCli, GenerateMarkdownHelpArgs, GlobalOptions};
-use clap::{Arg, Args, Command, CommandFactory};
-use std::fs::{File, OpenOptions};
+use crate::cli::BonsaiCli;
+use clap::{Command, CommandFactory};
+use std::fs::File;
 use std::io::{Result, Write};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
@@ -154,7 +154,7 @@ fn write_example(example_block: &str, output_file: &mut impl Write) -> Result<()
     let mut title: String = String::new();
     let mut description: String = String::new();
     let mut code: String = String::new();
-    let result = example_block
+    example_block
         .lines()
         .map(|line| line.trim())
         .for_each(|line| {

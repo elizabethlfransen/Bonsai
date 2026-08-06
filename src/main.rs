@@ -23,10 +23,11 @@ async fn main() -> Result<()> {
     set_is_quiet(global_options.quiet);
     set_render_mode(&global_options);
     setup_miettte()?;
-    let _prompt_adapter = get_prompt_adapter(&global_options);
+    let prompt_adapter = get_prompt_adapter(&global_options);
     match command {
         Commands::Init => {
-            cli_println!("Init called");
+            prompt_adapter.confirm("test").interact()?;
+            cli_println!("test");
             Ok(())
         }
         Commands::Completions(args) => commands::completions::handle_command(args),
