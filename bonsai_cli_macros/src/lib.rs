@@ -61,10 +61,9 @@ fn check_arg_field(field: &Field) {
 }
 
 fn is_root_command(item: &ItemStruct) -> bool {
-    return item
-        .attrs
+    item.attrs
         .iter()
-        .any(|attr| attr.path().is_ident("command"));
+        .any(|attr| attr.path().is_ident("command"))
 }
 
 fn is_subcommand_enum(item: &ItemEnum) -> bool {
@@ -80,27 +79,27 @@ fn is_arg_field(field: &Field) -> bool {
         .any(|attr| attr.path().is_ident("command"))
 }
 
-fn has_docs(attributes: &Vec<Attribute>) -> bool {
+fn has_docs(attributes: &[Attribute]) -> bool {
     attributes
         .iter()
         .any(|attr| is_allow_attr(attr, KEY_NO_DOCS) || attr.path().is_ident("doc"))
 }
 
-fn has_examples(attributes: &Vec<Attribute>) -> bool {
-    return attributes.iter().any(|attr| {
+fn has_examples(attributes: &[Attribute]) -> bool {
+    attributes.iter().any(|attr| {
         is_allow_attr(attr, KEY_NO_EXAMPLES)
             || attr.path().is_ident("command") && quote!(#attr).to_string().contains("examples!")
-    });
+    })
 }
 
 fn is_allow_attr(attr: &Attribute, key: &str) -> bool {
-    return if let Meta::List(items) = &attr.meta
+    if let Meta::List(items) = &attr.meta
         && attr.path().is_ident(ALLOW_ATTR)
     {
         items.tokens.to_string() == key
     } else {
         false
-    };
+    }
 }
 
 fn emit_docs_warning(ident: &Ident, item_type: &str) {
