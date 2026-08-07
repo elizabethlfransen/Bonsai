@@ -1,8 +1,8 @@
 #![feature(proc_macro_diagnostic)]
 
-use proc_macro::{Diagnostic, Level, Span, TokenStream};
+use proc_macro::{Diagnostic, Level, TokenStream};
 use quote::quote;
-use syn::{Attribute, Ident, Field, Item, ItemEnum, ItemStruct, Meta, Variant, parse_macro_input};
+use syn::{Attribute, Field, Ident, Item, ItemEnum, ItemStruct, Meta, Variant, parse_macro_input};
 
 const ALLOW_ATTR: &str = "allow_cli_warning";
 const ITEM_COMMAND: &str = "Command";
@@ -22,8 +22,6 @@ pub fn check_cli(_attr: TokenStream, item: TokenStream) -> TokenStream {
     }
     quote!(#input).into()
 }
-
-
 
 fn check_cli_struct(item: &ItemStruct) {
     let struct_name = &item.ident;
@@ -84,7 +82,7 @@ fn has_docs(attributes: &Vec<Attribute>) -> bool {
 fn has_examples(attributes: &Vec<Attribute>) -> bool {
     return attributes.iter().any(|attr| {
         is_allow_attr(attr, KEY_NO_EXAMPLES)
-        || attr.path().is_ident("command") && quote!(#attr).to_string().contains("examples!")
+            || attr.path().is_ident("command") && quote!(#attr).to_string().contains("examples!")
     });
 }
 
@@ -98,31 +96,28 @@ fn is_allow_attr(attr: &Attribute, key: &str) -> bool {
     };
 }
 
-
-fn emit_docs_warning(
-    ident: &Ident,
-    item_type: &str
-) {
+fn emit_docs_warning(ident: &Ident, item_type: &str) {
     Diagnostic::spanned(
-            ident.span().unwrap(),
-            Level::Warning,
-            format!("{item_type} `{ident}` is missing documentation"),
-        )
-        .help("Add documentation to resolve this warning")
-        .help(format!("Ignore this warning with #[{ALLOW_ATTR}({KEY_NO_DOCS})]"))
-        .emit();
+        ident.span().unwrap(),
+        Level::Warning,
+        format!("{item_type} `{ident}` is missing documentation"),
+    )
+    .help("Add documentation to resolve this warning")
+    .help(format!(
+        "Ignore this warning with #[{ALLOW_ATTR}({KEY_NO_DOCS})]"
+    ))
+    .emit();
 }
 
-fn emit_examples_warning(
-    ident: &Ident,
-    item_type: &str
-) {
+fn emit_examples_warning(ident: &Ident, item_type: &str) {
     Diagnostic::spanned(
-            ident.span().unwrap(),
-            Level::Warning,
-            format!("{item_type} `{ident}` is missing examples"),
-        )
-        .help("Add examples to resolve this warning")
-        .help(format!("Ignore this warning with #[{ALLOW_ATTR}({KEY_NO_EXAMPLES})]"))
-        .emit();
+        ident.span().unwrap(),
+        Level::Warning,
+        format!("{item_type} `{ident}` is missing examples"),
+    )
+    .help("Add examples to resolve this warning")
+    .help(format!(
+        "Ignore this warning with #[{ALLOW_ATTR}({KEY_NO_EXAMPLES})]"
+    ))
+    .emit();
 }
