@@ -13,7 +13,7 @@ Generate man pages. If the directory already exists this will fail. If you want 
   - output directory to generate man args
 ### Options
 - `-f`, `--force`
-
+  - Forces man pages to generate even if they are already present
 ### Global Options
 - `--no-color`
   - Disable color in the terminal
@@ -33,3 +33,16 @@ Generate man pages. If the directory already exists this will fail. If you want 
   - answer no to all confirms
 
 </div>
+### Examples
+#### Generate man pages and put them in /usr/local/share/man/man1
+
+```shell
+bonsai generate-man
+```
+
+#### Generate man pages and store them locally
+
+```shell
+bonsai generate-man ./man
+```
+

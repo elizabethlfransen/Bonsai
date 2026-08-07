@@ -4,7 +4,7 @@
 bonsai init
 ```
 ### Description
-
+Initializes a Bonsai project
 
 <div id="commandOptions">
 
@@ -27,3 +27,16 @@ bonsai init
   - answer no to all confirms
 
 </div>
+### Examples
+#### Initialize a project
+
+```shell
+bonsai init
+```
+
+#### Initialize a project, ignoring what's already there
+
+```shell
+bonsai init --force
+```
+

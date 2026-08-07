@@ -55,7 +55,7 @@ fn check_subcommand_variant(variant: &Variant) {
 }
 
 fn check_arg_field(field: &Field) {
-    if !has_docs(&field.attrs) {
+    if is_arg_field(field) && !has_docs(&field.attrs) {
         emit_docs_warning(field.ident.as_ref().unwrap(), ITEM_ARG);
     }
 }
@@ -71,6 +71,13 @@ fn is_subcommand_enum(item: &ItemEnum) -> bool {
     item.attrs.iter().any(|attr| {
         attr.path().is_ident("derive") && quote!(#attr).to_string().contains("Subcommand")
     })
+}
+
+fn is_arg_field(field: &Field) -> bool {
+    !field
+        .attrs
+        .iter()
+        .any(|attr| attr.path().is_ident("command"))
 }
 
 fn has_docs(attributes: &Vec<Attribute>) -> bool {

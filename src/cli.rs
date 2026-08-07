@@ -25,14 +25,29 @@ check_cli! {
 
     #[derive(Subcommand, Debug)]
     pub enum Commands {
+        /// Initializes a Bonsai project
+        #[command(after_long_help = examples!(
+            "Initialize a project" => "bonsai init",
+            "Initialize a project, ignoring what's already there" => "bonsai init --force"
+        ))]
         Init,
         /// Generate shell completions.
         ///
         /// Typically you would add the follow line in your .bashrc or equivalent file:
         ///
+        /// ```bash
         /// eval "$(bonsai completions)"
+        /// ```
+        #[command(after_long_help = examples!(
+            "Generate completions, detecting shell automatically" => "bonsai completions",
+            "Genenerate completions for a specifc shell" => "bonsai completions --shell zsh",
+        ))]
         Completions(GenerateCompletionsArgs),
         /// Generate man pages. If the directory already exists this will fail. If you want to update your man pages use `--force`
+        #[command(after_long_help = examples!(
+            "Generate man pages and put them in /usr/local/share/man/man1" => "bonsai generate-man",
+            "Generate man pages and store them locally" => "bonsai generate-man ./man"
+        ))]
         GenerateMan(GenerateManArgs),
     }
 
@@ -82,6 +97,7 @@ check_cli! {
         /// output directory to generate man args.
         #[arg(default_value = "/usr/local/share/man/man1")]
         pub out: PathBuf,
+        /// Forces man pages to generate even if they are already present
         #[arg(short, long)]
         pub force: bool,
     }

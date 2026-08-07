@@ -8,7 +8,7 @@ Generate shell completions.
 
 Typically you would add the follow line in your .bashrc or equivalent file:
 
-eval "$(bonsai completions)"
+```bash eval "$(bonsai completions)" ```
 
 <div id="commandOptions">
 
@@ -34,3 +34,16 @@ eval "$(bonsai completions)"
   - answer no to all confirms
 
 </div>
+### Examples
+#### Generate completions, detecting shell automatically
+
+```shell
+bonsai completions
+```
+
+#### Genenerate completions for a specifc shell
+
+```shell
+bonsai completions --shell zsh
+```
+
