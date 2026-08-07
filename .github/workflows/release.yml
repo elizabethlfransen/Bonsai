@@ -71,6 +71,8 @@ jobs:
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
 
       - name: Install cargo-edit
         run: cargo install cargo-edit
