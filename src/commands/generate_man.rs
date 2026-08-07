@@ -1,13 +1,19 @@
 use std::{
     fs::{self, OpenOptions},
-    io,
+    io::{self, Write},
     path::PathBuf,
 };
 
-use crate::cli::{BonsaiCli, GenerateManArgs};
+use crate::{
+    cli::{BonsaiCli, GenerateManArgs},
+    util::example::{Example, ExampleParseError, ToExamples},
+};
 use clap::{Command, CommandFactory};
-use clap_mangen::Man;
-use miette::{Diagnostic, Result};
+use clap_mangen::{
+    Man,
+    roff::{Roff, roman},
+};
+use miette::{Diagnostic, IntoDiagnostic, Result};
 use thiserror::Error;
 
 #[derive(Error, Debug, Diagnostic)]
@@ -27,7 +33,9 @@ pub enum GenerateManError {
 }
 
 pub fn handle_command(GenerateManArgs { force, out }: GenerateManArgs) -> Result<()> {
-    fs::create_dir_all(&out).map_err(|_| GenerateManError::NoAccess)?;
+    if !out.exists() {
+        fs::create_dir_all(&out).map_err(|_| GenerateManError::NoAccess)?;
+    }
     generate_man_page_for_command_and_subcommands(&out, BonsaiCli::command(), None, force, true)?;
     generate_man_page_for_command_and_subcommands(&out, BonsaiCli::command(), None, force, false)?;
     Ok(())
@@ -55,7 +63,7 @@ fn generate_man_page_for_command_and_subcommands(
         .unwrap_or_else(|| command.get_name());
     let command = command.clone().bin_name(prefix + bin_name);
     if dry_run {
-        let exists = fs::exists(path).map_err(|_| GenerateManError::NoAccess)?;
+        let exists = fs::exists(file_path).map_err(|_| GenerateManError::NoAccess)?;
         if exists && !force {
             return Err(GenerateManError::ManPagesAlreadyExist.into());
         }
@@ -75,8 +83,7 @@ fn generate_man_page_for_command_and_subcommands(
             }
         })?;
         let man = Man::new(command.clone());
-        man.render(&mut file)
-            .map_err(|_| GenerateManError::NoAccess)?;
+        man.render_with_examples(&command, &mut file)?
     }
     for subcommand in command.get_subcommands() {
         generate_man_page_for_command_and_subcommands(
@@ -88,4 +95,116 @@ fn generate_man_page_for_command_and_subcommands(
         )?;
     }
     Ok(())
+}
+
+trait RenderWithExamples {
+    fn render_with_examples(&self, cmd: &Command, w: &mut dyn io::Write) -> Result<()>;
+
+    fn render_examples_section(&self, cmd: &Command, roff: &mut dyn Write) -> Result<()>;
+}
+
+impl RenderWithExamples for Man {
+    fn render_with_examples(&self, cmd: &Command, w: &mut dyn io::Write) -> Result<()> {
+        self.render_title(w).into_diagnostic()?;
+        self.render_name_section(w).into_diagnostic()?;
+        self.render_synopsis_section(w).into_diagnostic()?;
+        self.render_description_section(w).into_diagnostic()?;
+
+        if app_has_arguments(cmd) {
+            self.render_options_section(w).into_diagnostic()?;
+        }
+
+        if app_has_subcommands(cmd) {
+            self.render_subcommands_section(w).into_diagnostic()?;
+        }
+
+        // this is where it starts to differ... extract the examples
+        if cmd.get_after_long_help().is_some() || cmd.get_after_help().is_some() {
+            self.render_examples_section(cmd, w)?;
+        }
+
+        if app_has_version(cmd) {
+            self.render_version_section(w).into_diagnostic()?;
+        }
+
+        if cmd.get_author().is_some() {
+            self.render_authors_section(w).into_diagnostic()?;
+        }
+        Ok(())
+    }
+
+    fn render_examples_section(&self, cmd: &Command, w: &mut dyn Write) -> Result<()> {
+        let mut roff = Roff::default();
+        roff.control("SH", ["EXAMPLES"]);
+        let examples = cmd.get_examples().into_diagnostic()?;
+        for example in examples {
+            let mut result = vec![Vec::new()];
+            let mut is_bolding = true;
+            let mut last_part_arg = false;
+            for mut part in shlex::split(&example.usage).unwrap() {
+                if part.contains(' ') {
+                    part = format!("\"{part}\"");
+                }
+
+                if part.starts_with("--") {
+                    if !is_bolding {
+                        result.last_mut().unwrap().push(String::new());
+                        result.push(Vec::new());
+                    }
+                    is_bolding = true;
+                    last_part_arg = true;
+                } else if part.starts_with("-") {
+                    if !is_bolding {
+                        result.last_mut().unwrap().push(String::new());
+                        result.push(Vec::new());
+                    }
+                    is_bolding = true;
+                    last_part_arg = false;
+                } else if last_part_arg {
+                    if is_bolding {
+                        result.last_mut().unwrap().push(String::new());
+                        result.push(Vec::new());
+                    }
+                    is_bolding = false;
+                    last_part_arg = false;
+                } else {
+                    if !is_bolding {
+                        result.last_mut().unwrap().push(String::new());
+                        result.push(Vec::new());
+                    }
+                    is_bolding = true;
+                    last_part_arg = false;
+                }
+                result.last_mut().unwrap().push(part);
+            }
+            let result = result
+                .into_iter()
+                .map(|item| item.join(" "))
+                .collect::<Vec<_>>();
+            let elements = result.iter().map(|item| item.as_ref());
+            roff.control("TP", []);
+            roff.control("BI", elements);
+            let description = roman(example.description);
+            roff.text([description]);
+        }
+        roff.to_writer(w).into_diagnostic()?;
+        Ok(())
+    }
+}
+
+// Does the application have a version?
+fn app_has_version(cmd: &clap::Command) -> bool {
+    cmd.get_version()
+        .or_else(|| cmd.get_long_version())
+        .is_some()
+}
+
+// Does the application have any command line arguments?
+fn app_has_arguments(cmd: &clap::Command) -> bool {
+    cmd.get_arguments().any(|i| !i.is_hide_set())
+}
+
+// Does the application have any subcommands?
+fn app_has_subcommands(cmd: &clap::Command) -> bool {
+    cmd.get_subcommands().any(|i| !i.is_hide_set())
 }
