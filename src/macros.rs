@@ -10,3 +10,13 @@ macro_rules! examples {
         )
     };
 }
+
+#[macro_export]
+macro_rules! check_cli {
+    ($($item:item)*) => {
+        $(
+            #[bonsai_cli_macros::check_cli]
+            $item
+        )*
+    };
+}

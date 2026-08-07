@@ -113,6 +113,7 @@ name = "bonsai-mc-cli"
 version = "0.1.0-dev"
 dependencies = [
  "atomic_enum",
+ "bonsai_cli_macros",
  "clap",
  "clap_complete",
  "clap_mangen",
@@ -125,6 +126,15 @@ dependencies = [
  "strip-ansi-escapes",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "bonsai_cli_macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
 ]
 
 [[package]]

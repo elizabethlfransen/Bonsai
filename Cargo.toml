@@ -20,12 +20,21 @@ thiserror = "2.0.19"
 tokio = { version = "1.53.1", features = ["full"] }
 clap_mangen = "0.3.0"
 clap_complete = "4.6.8"
+bonsai_cli_macros = { path = "bonsai_cli_macros" }
 
 [build-dependencies]
 clap = { version = "4.6.5", features = ["derive"] }
 clap_mangen = "0.3.0"
 clap_complete = "4.6.8"
+bonsai_cli_macros = { path = "bonsai_cli_macros" }
 
 [[bin]]
 name = "bonsai"
 path = "src/main.rs"
+
+[workspace]
+resolver="3"
+members = [
+    ".",
+    "bonsai_cli_macros",
+]
