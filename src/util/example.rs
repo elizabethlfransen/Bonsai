@@ -2,7 +2,6 @@ use clap::Command;
 use miette::Diagnostic;
 use thiserror::Error;
 
-use crate::cli_println;
 
 pub struct Example {
     pub description: String,
@@ -31,7 +30,7 @@ impl Example {
                 stripped_example_section
                     .split("\n\n")
                     .filter(|example| !example.trim().is_empty())
-                    .map(|example| Example::parse_example(example))
+                    .map(Example::parse_example)
                     .collect::<Result<_, _>>()?
             } else {
                 Vec::new()

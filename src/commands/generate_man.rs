@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     cli::{BonsaiCli, GenerateManArgs},
-    util::example::{Example, ExampleParseError, ToExamples},
+    util::example::ToExamples,
 };
 use clap::{Command, CommandFactory};
 use clap_mangen::{
